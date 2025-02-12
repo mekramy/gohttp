@@ -3,7 +3,6 @@ package gohttp
 import (
 	"fmt"
 	"mime/multipart"
-	"path/filepath"
 	"runtime"
 
 	"github.com/gabriel-vasile/mimetype"
@@ -124,12 +123,8 @@ func detectMime(file *multipart.FileHeader) string {
 
 // realCaller returns the file name and line number of error caller func.
 func realCaller() (string, int, bool) {
-	var ok bool
-	_, fileName, fileLine, ok := runtime.Caller(2)
-	if !ok {
-		return "", 0, false
+	if _, f, l, ok := runtime.Caller(2); ok {
+		return f, l, true
 	}
-	nd, nf := filepath.Split(fileName)
-	fileName = filepath.Join(filepath.Base(nd), nf)
-	return fileName, fileLine, true
+	return "", 0, false
 }

@@ -1,6 +1,8 @@
 package gohttp
 
 import (
+	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,7 +16,20 @@ type ErrorCallback func(ctx *fiber.Ctx, err HttpError) error
 // It takes a logger, an optional error callback, and a list of status codes to log.
 // If the error matches one of the provided status codes, it will be logged using the provided logger.
 // If an error callback is provided, it will be used to handle the error response; otherwise, a default plain text response will be sent.
+// For relative file name in log use os.Setenv("APP_ROOT", "your/project/root") to define your project root.
 func NewFiberErrorHandler(l gologger.Logger, cb ErrorCallback, codes ...int) fiber.ErrorHandler {
+	relative := func(path string) string {
+		root := filepath.ToSlash(os.Getenv("APP_ROOT"))
+		path = filepath.ToSlash(path)
+		if root != "" {
+			if p, err := filepath.Rel(root, path); err == nil {
+				return p
+			}
+		}
+
+		return filepath.ToSlash(path)
+	}
+
 	return func(ctx *fiber.Ctx, err error) error {
 		// Parse error
 		file := ""
@@ -39,7 +54,7 @@ func NewFiberErrorHandler(l gologger.Logger, cb ErrorCallback, codes ...int) fib
 		// Log
 		if l != nil && (len(codes) == 0 || slices.Contains(codes, status)) {
 			params := make([]gologger.LogOptions, 0)
-			params = append(params, gologger.With("file", file))
+			params = append(params, gologger.With("file", relative(file)))
 			params = append(params, gologger.With("line", line))
 			params = append(params, gologger.With("status", status))
 			params = append(params, gologger.With("ip", ctx.IP()))
