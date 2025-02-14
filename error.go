@@ -14,7 +14,7 @@ import (
 type HttpError struct {
 	Line    int            // Line number where the error occurred.
 	File    string         // File name where the error occurred.
-	Body    map[string]any // Request body data
+	Body    map[string]any // Request body data.
 	Status  int            // HTTP status code.
 	Message string         // Error message.
 }
