@@ -13,7 +13,7 @@ import (
 // CSRF validation fails, and the next function can be used to skip CSRF validation for certain
 // requests. By default, this middleware generates a 419 HTTP response if CSRF validation fails.
 // This middleware must be called after the session middleware.
-func NewCSRF(secure bool, onFail func(*fiber.Ctx) error, next func(*fiber.Ctx) bool) fiber.Handler {
+func NewCSRF(secure bool, onFail fiber.Handler, next func(*fiber.Ctx) bool) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Skip
 		if next != nil && next(c) {
