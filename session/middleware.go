@@ -5,6 +5,9 @@ import (
 	"github.com/mekramy/gocache"
 )
 
+// NewMiddleware creates a new session middleware for the Fiber framework.
+// It initializes a session using the provided cache and options, sets the necessary headers,
+// stores the session in the context, and ensures the session is saved after the request is processed.
 func NewMiddleware(cache gocache.Cache, options ...Options) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// Create session
