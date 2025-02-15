@@ -8,12 +8,13 @@ import (
 )
 
 // NewCSRF creates a new CSRF middleware handler for Fiber. It validates the CSRF token
-// for incoming requests and generates a new token if needed. The secure argument specifies
-// whether the CSRF cookie should be generated securely. The onFail function is called if the
-// CSRF validation fails, and the next function can be used to skip CSRF validation for certain
-// requests. By default, this middleware generates a 419 HTTP response if CSRF validation fails.
+// for incoming requests from "X-CSRF-Token" header or "csrf_token" form and generates
+// a new token if needed. The onFail function is called if the CSRF validation fails,
+// and the next function can be used to skip CSRF validation for certain requests.
+// By default, this middleware generates a 419 HTTP response if CSRF validation fails.
+//
 // This middleware must be called after the session middleware.
-func NewCSRF(secure bool, onFail fiber.Handler, next func(*fiber.Ctx) bool) fiber.Handler {
+func NewCSRF(onFail fiber.Handler, next func(*fiber.Ctx) bool) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Skip
 		if next != nil && next(c) {
@@ -21,7 +22,6 @@ func NewCSRF(secure bool, onFail fiber.Handler, next func(*fiber.Ctx) bool) fibe
 		}
 
 		// Set allowed headers
-		c.Append("Access-Control-Expose-Headers", "X-CSRF-TOKEN")
 		c.Append("Access-Control-Allow-Headers", "X-CSRF-TOKEN")
 
 		// Parse session
@@ -35,18 +35,13 @@ func NewCSRF(secure bool, onFail fiber.Handler, next func(*fiber.Ctx) bool) fibe
 
 		// Generate or refresh token if needed
 		if token == "" {
-			token, _ = RefreshCSRF(secure, c, session)
+			token, _ = RefreshCSRF(c, session)
 		}
 
 		// Ignore RFC9110 (GET, HEAD, OPTIONS, and TRACE) methods
 		if slices.Contains([]string{fiber.MethodPost, fiber.MethodPut, fiber.MethodPatch, fiber.MethodDelete}, c.Method()) {
 			// Parse request csrf token from X-CSRF-Token header
 			input := c.Get("X-CSRF-Token")
-
-			// Parse request csrf token from csrf_token cookie
-			if input == "" {
-				input = c.Cookies("csrf_token")
-			}
 
 			// Parse request csrf token from csrf_token form
 			if input == "" {

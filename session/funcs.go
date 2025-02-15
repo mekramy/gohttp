@@ -29,12 +29,10 @@ func CSRF(ctx *fiber.Ctx) string {
 	return ""
 }
 
-// RefreshCSRF generates a new CSRF token, sets it in the response headers and cookies,
-// and saves it to the session. It returns the generated token or an error if the session
-// not passed and cannot be resolved.
-func RefreshCSRF(secure bool, c *fiber.Ctx, s Session) (string, error) {
-	token := uuid.NewString()
-
+// RefreshCSRF generates a new CSRF token and saves it to the session.
+// It returns the generated token or an error if the session not passed
+// and cannot be resolved.
+func RefreshCSRF(c *fiber.Ctx, s Session) (string, error) {
 	// Parse session if not passed
 	if s == nil {
 		s = Parse(c)
@@ -43,22 +41,8 @@ func RefreshCSRF(secure bool, c *fiber.Ctx, s Session) (string, error) {
 		}
 	}
 
-	// Set headers
-	c.Append("Access-Control-Expose-Headers", "X-CSRF-TOKEN")
-	c.Append("Access-Control-Allow-Headers", "X-CSRF-TOKEN")
-	c.Set("X-CSRF-TOKEN", token)
-
-	// Set Cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "csrf_token",
-		Value:    token,
-		HTTPOnly: true,
-		Secure:   secure,
-		SameSite: fiber.CookieSameSiteStrictMode,
-	})
-
 	// Save to session
+	token := uuid.NewString()
 	s.Set("csrf", token)
-
 	return token, nil
 }
