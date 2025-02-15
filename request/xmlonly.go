@@ -1,4 +1,4 @@
-package middleware
+package request
 
 import (
 	"github.com/gofiber/fiber/v2"
