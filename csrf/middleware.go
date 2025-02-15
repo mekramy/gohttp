@@ -2,7 +2,6 @@ package csrf
 
 import (
 	"errors"
-	"slices"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mekramy/gohttp/session"
@@ -42,14 +41,9 @@ func NewMiddleware(options ...Options) fiber.Handler {
 		}
 
 		// Proccess request
-		// RFC9110 (GET, HEAD, OPTIONS, and TRACE) methods
-		shouldCheck := slices.Contains(
-			[]string{fiber.MethodPost, fiber.MethodPut, fiber.MethodPatch, fiber.MethodDelete},
-			c.Method(),
-		)
 		if option.header {
 			c.Append("Access-Control-Allow-Headers", "X-CSRF-TOKEN")
-			if shouldCheck {
+			if isRFC9110Method(c) {
 				input := c.Get("X-CSRF-Token")
 				if token == "" || input != token {
 					if option.fail != nil {
@@ -59,7 +53,7 @@ func NewMiddleware(options ...Options) fiber.Handler {
 				}
 			}
 		} else {
-			if shouldCheck {
+			if isRFC9110Method(c) {
 				type Form struct {
 					Token string `json:"csrf_token" form:"csrf_token"`
 				}

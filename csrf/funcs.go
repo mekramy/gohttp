@@ -2,6 +2,7 @@ package csrf
 
 import (
 	"errors"
+	"slices"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -36,4 +37,18 @@ func refresh(s session.Session) string {
 	token := uuid.NewString()
 	s.Set("csrf", token)
 	return token
+}
+
+// isRFC9110Method check if request method not GET, HEAD, OPTIONS and TRACE.
+// RFC9110#section-9.2.1 safe methods.
+func isRFC9110Method(c *fiber.Ctx) bool {
+	return slices.Contains(
+		[]string{
+			fiber.MethodPost,
+			fiber.MethodPut,
+			fiber.MethodPatch,
+			fiber.MethodDelete,
+		},
+		c.Method(),
+	)
 }
