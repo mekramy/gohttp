@@ -1,4 +1,4 @@
-package request
+package content
 
 import (
 	"github.com/gofiber/fiber/v2"
