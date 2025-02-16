@@ -9,8 +9,7 @@ import (
 // or return a 406 Not Acceptable status by default.
 func MultipartOnly(onFail ...fiber.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		contentType := c.Get("Content-Type")
-		if contentType != "multipart/form-data" {
+		if !isValidContent(c.Get(fiber.HeaderContentType), fiber.MIMEMultipartForm) {
 			if len(onFail) > 0 && onFail[0] != nil {
 				return onFail[0](c)
 			}

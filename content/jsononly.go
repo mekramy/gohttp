@@ -9,7 +9,7 @@ import (
 // if provided, or return a 406 Not Acceptable status by default.
 func JsonOnly(onFail ...fiber.Handler) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		if c.Get("Content-Type") != "application/json" {
+		if !isValidContent(c.Get(fiber.HeaderContentType), fiber.MIMEApplicationJSON) {
 			if len(onFail) > 0 && onFail[0] != nil {
 				return onFail[0](c)
 			}
